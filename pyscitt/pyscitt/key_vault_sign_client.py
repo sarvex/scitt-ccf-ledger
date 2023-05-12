@@ -47,8 +47,7 @@ class KeyVaultSignClient(MemberAuthenticationMethod):
     def _encode_certificate(cert: KeyVaultCertificate) -> str:
         assert isinstance(cert.cer, bytearray)
         decoded = base64.b64encode(cert.cer).decode()
-        cert_pem = f"-----BEGIN CERTIFICATE-----\n{decoded}\n-----END CERTIFICATE-----"
-        return cert_pem
+        return f"-----BEGIN CERTIFICATE-----\n{decoded}\n-----END CERTIFICATE-----"
 
     def sign(self, data: bytes):
         key_client = KeyClient(vault_url=self._vault_url, credential=self.credential)

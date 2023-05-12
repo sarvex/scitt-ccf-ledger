@@ -32,9 +32,7 @@ def hdr_as_dict(phdr: dict) -> dict:
     def display(item):
         if hasattr(item, "__name__"):
             return item.__name__
-        if type(item) is bytes:
-            return item.hex()
-        return item
+        return item.hex() if type(item) is bytes else item
 
     # Decode KID into a 'readable' text string if present.
     hdr_dict = {display(k): display(v) for k, v in phdr.items()}
@@ -70,7 +68,7 @@ class ReceiptContents(ABC):
         pass
 
     @classmethod
-    def from_cose_obj(self, headers: dict, cose_obj: Any) -> "ReceiptContents":
+    def from_cose_obj(cls, headers: dict, cose_obj: Any) -> "ReceiptContents":
         if headers.get(HEADER_PARAM_TREE_ALGORITHM) == TREE_ALGORITHM_CCF:
             return CCFReceiptContents(
                 cose_obj[0],

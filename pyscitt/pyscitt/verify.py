@@ -193,10 +193,7 @@ class DIDResolverTrustStore(TrustStore):
     """
 
     def __init__(self, resolver: Optional[did.Resolver] = None):
-        if resolver is not None:
-            self.resolver = resolver
-        else:
-            self.resolver = did.Resolver()
+        self.resolver = resolver if resolver is not None else did.Resolver()
 
     def lookup(self, phdr) -> ServiceParameters:
         if COSE_HEADER_PARAM_ISSUER not in phdr:

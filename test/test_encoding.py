@@ -127,7 +127,7 @@ def sign(signer: crypto.Signer, payload: bytes, parameters: dict, *, canonical=T
 
     tbs = cbor_encode(["Signature1", encoded_headers, b"", payload], canonical=True)
     signature = algorithm.sign(key, tbs)
-    message = [encoded_headers, dict(), payload, signature]
+    message = [encoded_headers, {}, payload, signature]
     return cbor_encode(
         cbor2.CBORTag(Sign1Message.cbor_tag, message), canonical=canonical
     )

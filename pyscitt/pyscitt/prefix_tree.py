@@ -216,7 +216,4 @@ class PrefixTreeClient:
 
     def get_read_receipt(self, issuer: str, feed: str, *, decode=True):
         response = self.client.get_historical(f"/read_receipt/{issuer}/{feed}")
-        if decode:
-            return ReadReceipt.decode(response.content)
-        else:
-            return response.content
+        return ReadReceipt.decode(response.content) if decode else response.content

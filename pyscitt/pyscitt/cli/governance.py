@@ -58,7 +58,7 @@ def execute_action(client: Client, action: GovernanceAction, args: argparse.Name
             )
 
         if result.is_accepted:
-            print(f"Proposal was accepted!")
+            print("Proposal was accepted!")
         elif result.is_open:
             print(f"Proposal {result.id} is still open, more votes needed!")
         else:
@@ -111,9 +111,9 @@ def apply_scitt_constitution_update(
             f"New SCITT constitution does not end with marker {repr(SCITT_CONSTITUTION_MARKER_END)}"
         )
     if new_scitt_constitution.count(SCITT_CONSTITUTION_MARKER_START) > 1:
-        raise RuntimeError(f"New SCITT constitution contains multiple start markers")
+        raise RuntimeError("New SCITT constitution contains multiple start markers")
     if new_scitt_constitution.count(SCITT_CONSTITUTION_MARKER_END) > 1:
-        raise RuntimeError(f"New SCITT constitution contains multiple end markers")
+        raise RuntimeError("New SCITT constitution contains multiple end markers")
 
     parts = original_constitution.split(SCITT_CONSTITUTION_MARKER_START)
     if len(parts) == 1:
@@ -152,9 +152,8 @@ def update_scitt_constitution(client: Client, scitt_constitution_path: Path, yes
             print("You may review and modify the file before proceeding.")
             answer = input("Do you wish to continue [y/N]: ").lower()
 
-            if answer == "y" or answer == "yes":
+            if answer in ["y", "yes"]:
                 final_constitution = path.read_text()
-                pass
             else:
                 print("Aborting")
                 sys.exit(1)
@@ -225,7 +224,7 @@ def setup_local_development(
         trust_store_dir.mkdir(parents=True, exist_ok=True)
         parameters = client.get_parameters().as_dict()
         service_id = parameters["serviceId"]
-        path = trust_store_dir.joinpath(service_id + ".json")
+        path = trust_store_dir.joinpath(f"{service_id}.json")
         path.write_text(json.dumps(parameters))
 
 

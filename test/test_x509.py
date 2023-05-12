@@ -207,18 +207,20 @@ def test_submit_claim_notary_x509(
     """
     identity = trusted_ca.create_identity(length=length, alg=algorithm, **params)
 
-    phdr: dict = {}
-    phdr[pycose.headers.Algorithm] = identity.algorithm
-    phdr[pycose.headers.ContentType] = "application/vnd.cncf.notary.payload.v1+json"
-    phdr[pycose.headers.Critical] = ["io.cncf.notary.signingScheme"]
-    phdr["io.cncf.notary.signingTime"] = cbor2.CBORTag(1, int(time.time()))
-    phdr["io.cncf.notary.signingScheme"] = "notary.x509"
-
-    uhdr: dict = {}
+    phdr: dict = {
+        pycose.headers.Algorithm: identity.algorithm,
+        pycose.headers.ContentType: "application/vnd.cncf.notary.payload.v1+json",
+        pycose.headers.Critical: ["io.cncf.notary.signingScheme"],
+        "io.cncf.notary.signingTime": cbor2.CBORTag(1, int(time.time())),
+        "io.cncf.notary.signingScheme": "notary.x509",
+    }
     assert identity.x5c is not None
-    uhdr[pycose.headers.X5chain] = [crypto.cert_pem_to_der(x5) for x5 in identity.x5c]
-    uhdr["io.cncf.notary.signingAgent"] = "Notation/1.0.0"
-
+    uhdr: dict = {
+        pycose.headers.X5chain: [
+            crypto.cert_pem_to_der(x5) for x5 in identity.x5c
+        ],
+        "io.cncf.notary.signingAgent": "Notation/1.0.0",
+    }
     payload = json.dumps(
         {
             "targetArtifact": {

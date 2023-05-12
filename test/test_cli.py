@@ -181,7 +181,7 @@ def test_create_ssh_did_web(run, tmp_path: Path):
     run(
         "create-did-web",
         "--url",
-        f"https://localhost:1234/me",
+        "https://localhost:1234/me",
         "--ssh-key",
         tmp_path / "id_rsa.pub",
         "--out-dir",
@@ -191,7 +191,7 @@ def test_create_ssh_did_web(run, tmp_path: Path):
     run(
         "create-did-web",
         "--url",
-        f"https://localhost:1234/",
+        "https://localhost:1234/",
         "--ssh-key",
         tmp_path / "id_rsa.pub",
         "--out-dir",
@@ -201,7 +201,7 @@ def test_create_ssh_did_web(run, tmp_path: Path):
     run(
         "create-did-web",
         "--url",
-        f"https://localhost:1234",
+        "https://localhost:1234",
         "--ssh-key",
         tmp_path / "id_rsa.pub",
         "--out-dir",

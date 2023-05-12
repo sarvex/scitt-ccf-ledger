@@ -16,11 +16,13 @@ NOTICE_LINES = [
 # This adds language-specific comment characters to the start of each line.
 # Also includes variants with a shebang as the first line
 PREFIXES = [
-    os.linesep.join([prefix + " " + line for line in NOTICE_LINES])
+    os.linesep.join([f"{prefix} {line}" for line in NOTICE_LINES])
     for prefix in ["//", "#"]
 ]
 PREFIXES.extend(
-    os.linesep.join([f"#!{interpreter}"] + ["# " + line for line in NOTICE_LINES])
+    os.linesep.join(
+        [f"#!{interpreter}"] + [f"# {line}" for line in NOTICE_LINES]
+    )
     for interpreter in ["/bin/bash", "/usr/bin/env python3"]
 )
 

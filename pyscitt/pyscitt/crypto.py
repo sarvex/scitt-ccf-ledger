@@ -153,18 +153,16 @@ def is_ssh_private_key(pem: str):
 
 def ssh_private_key_to_pem(pem: str) -> Pem:
     priv = load_ssh_private_key(pem.encode("ascii"), None)
-    pem = priv.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()).decode(
-        "ascii"
-    )
-    return pem
+    return priv.private_bytes(
+        Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
+    ).decode("ascii")
 
 
 def ssh_public_key_to_pem(ssh_pub_key: str) -> Pem:
     pub = load_ssh_public_key(ssh_pub_key.encode("ascii"))
-    pem = pub.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode(
-        "ascii"
-    )
-    return pem
+    return pub.public_bytes(
+        Encoding.PEM, PublicFormat.SubjectPublicKeyInfo
+    ).decode("ascii")
 
 
 def generate_cert(
@@ -474,19 +472,13 @@ def from_cryptography_eckey_obj(
 
     cose_key = {}
     if pub_nums:
-        cose_key.update(
-            {
-                EC2KpCurve: curve,
-                EC2KpX: pub_nums.x.to_bytes(curve.size, "big"),
-                EC2KpY: pub_nums.y.to_bytes(curve.size, "big"),
-            }
-        )
+        cose_key |= {
+            EC2KpCurve: curve,
+            EC2KpX: pub_nums.x.to_bytes(curve.size, "big"),
+            EC2KpY: pub_nums.y.to_bytes(curve.size, "big"),
+        }
     if priv_nums:
-        cose_key.update(
-            {
-                EC2KpD: priv_nums.private_value.to_bytes(curve.size, "big"),
-            }
-        )
+        cose_key[EC2KpD] = priv_nums.private_value.to_bytes(curve.size, "big")
     return EC2Key.from_dict(cose_key)
 
 
@@ -514,19 +506,12 @@ def from_cryptography_ed25519key_obj(
 
     curve = Ed25519
 
-    cose_key = {}
-    cose_key.update(
-        {
-            OKPKpCurve: curve,
-            OKPKpX: pub_bytes,
-        }
-    )
+    cose_key = {} | {
+        OKPKpCurve: curve,
+        OKPKpX: pub_bytes,
+    }
     if priv_bytes:
-        cose_key.update(
-            {
-                OKPKpD: priv_bytes,
-            }
-        )
+        cose_key[OKPKpD] = priv_bytes
     return OKPKey.from_dict(cose_key)
 
 
@@ -570,8 +555,7 @@ def embed_receipt_in_cose(buf: bytes, receipt: bytes) -> bytes:
 
 
 def load_private_key(key_path: Path) -> Pem:
-    with open(key_path) as f:
-        key_priv_pem = f.read()
+    key_priv_pem = Path(key_path).read_text()
     if is_ssh_private_key(key_priv_pem):
         key_priv_pem = ssh_private_key_to_pem(key_priv_pem)
     return key_priv_pem
@@ -671,10 +655,10 @@ def sign_claimset(
     feed: Optional[str] = None,
     registration_info: RegistrationInfo = {},
 ) -> bytes:
-    headers: dict = {}
-    headers[pycose.headers.Algorithm] = signer.algorithm
-    headers[pycose.headers.ContentType] = content_type
-
+    headers: dict = {
+        pycose.headers.Algorithm: signer.algorithm,
+        pycose.headers.ContentType: content_type,
+    }
     if signer.x5c is not None:
         headers[pycose.headers.X5chain] = [cert_pem_to_der(x5) for x5 in signer.x5c]
     if signer.kid is not None:
@@ -733,15 +717,14 @@ def convert_p1363_signature_to_dss(signature: bytes) -> bytes:
 
 
 def convert_jwk_to_pem(jwk: dict) -> Pem:
-    if jwk.get("kty") == "EC":
-        x = int.from_bytes(base64.urlsafe_b64decode(jwk["x"]), "big")
-        y = int.from_bytes(base64.urlsafe_b64decode(jwk["y"]), "big")
-        crv = REGISTERED_EC_CURVES[jwk["crv"]].curve_obj
-        assert isinstance(crv, EllipticCurve)
-        key = EllipticCurvePublicNumbers(x, y, crv).public_key()
-    else:
+    if jwk.get("kty") != "EC":
         raise NotImplementedError("Unsupported JWK type")
 
+    x = int.from_bytes(base64.urlsafe_b64decode(jwk["x"]), "big")
+    y = int.from_bytes(base64.urlsafe_b64decode(jwk["y"]), "big")
+    crv = REGISTERED_EC_CURVES[jwk["crv"]].curve_obj
+    assert isinstance(crv, EllipticCurve)
+    key = EllipticCurvePublicNumbers(x, y, crv).public_key()
     return key.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode(
         "ascii"
     )

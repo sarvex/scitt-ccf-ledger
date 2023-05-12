@@ -42,8 +42,9 @@ class Submitter(ScittUser):
     def on_start(self):
         claims_dir = self.environment.parsed_options.scitt_claims
         self._claims = []
-        for path in Path(claims_dir).glob("*.cose"):
-            self._claims.append(path.read_bytes())
+        self._claims.extend(
+            path.read_bytes() for path in Path(claims_dir).glob("*.cose")
+        )
 
     @task
     def submit_claim(self):

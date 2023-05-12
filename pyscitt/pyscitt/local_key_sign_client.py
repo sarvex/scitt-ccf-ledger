@@ -23,7 +23,6 @@ class LocalKeySignClient(MemberAuthenticationMethod):
         digest_algo = {256: hashes.SHA256(), 384: hashes.SHA384()}[
             self.private_key.curve.key_size
         ]
-        signature = self.private_key.sign(
+        return self.private_key.sign(
             signature_algorithm=ec.ECDSA(algorithm=digest_algo), data=data
         )
-        return signature

@@ -131,13 +131,9 @@ class BaseClient:
 
         headers = {}
         if auth_token:
-            headers["Authorization"] = "Bearer " + auth_token
+            headers["Authorization"] = f"Bearer {auth_token}"
 
-        if member_auth:
-            self.member_http_sig = HttpSig(member_auth)
-        else:
-            self.member_http_sig = None
-
+        self.member_http_sig = HttpSig(member_auth) if member_auth else None
         if tcp_nodelay_patch:
             # Work-around until https://github.com/encode/httpcore/pull/651 is merged.
             # This is necessary to set TCP_NODELAY on the sockets used by httpx.
@@ -182,8 +178,7 @@ class BaseClient:
             "wait_time": self.wait_time,
             "tcp_nodelay_patch": self.tcp_nodelay_patch,
             "development": self.development,
-        }
-        values.update(kwargs)
+        } | kwargs
         return self.__class__(**values)
 
     def request(
@@ -253,9 +248,8 @@ class BaseClient:
                 elif callable(code):
                     if code(response):
                         break
-                else:
-                    if response.status_code == code:
-                        break
+                elif response.status_code == code:
+                    break
             else:
                 break
 
@@ -386,10 +380,9 @@ class Client(BaseClient):
         operation_id = response["operationId"]
         if skip_confirmation:
             return PendingSubmission(operation_id)
-        else:
-            tx = self.wait_for_operation(operation_id)
-            receipt = self.get_receipt(tx, decode=False)
-            return Submission(operation_id, tx, receipt)
+        tx = self.wait_for_operation(operation_id)
+        receipt = self.get_receipt(tx, decode=False)
+        return Submission(operation_id, tx, receipt)
 
     def wait_for_operation(self, operation: str) -> str:
         response = self.get(
@@ -404,7 +397,7 @@ class Client(BaseClient):
             error = payload["error"]
             raise ServiceError(response.headers, error["code"], error["message"])
         else:
-            raise ValueError("Invalid status {}".format(payload["status"]))
+            raise ValueError(f'Invalid status {payload["status"]}')
 
     def get_operations(self):
         return self.get("/operations").json()["operations"]
@@ -444,10 +437,7 @@ class Client(BaseClient):
             tx = self.wait_for_operation(tx)
 
         response = self.get_historical(f"/entries/{tx}/receipt")
-        if decode:
-            return Receipt.decode(response.content)
-        else:
-            return response.content
+        return Receipt.decode(response.content) if decode else response.content
 
     def enumerate_claims(
         self, *, start: Optional[int] = None, end: Optional[int] = None
@@ -475,9 +465,7 @@ class Client(BaseClient):
                 ],
             )
             body = response.json()
-            for tx in body["transactionIds"]:
-                yield tx
-
+            yield from body["transactionIds"]
             link = body.get("nextLink")
 
     def wait_for_network_open(self):

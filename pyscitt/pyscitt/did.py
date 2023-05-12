@@ -40,11 +40,7 @@ def did_web_parse(did: str) -> Tuple[str, Optional[str]]:
     if prefix != "did" or method != "web":
         raise ValueError("Malformed DID-web")
 
-    if len(parts) == 3:
-        path = None
-    else:
-        path = "/".join(parts[3:])
-
+    path = None if len(parts) == 3 else "/".join(parts[3:])
     return unquote(location), path
 
 
@@ -73,7 +69,7 @@ def find_assertion_method(did_doc: dict, kid: Optional[str]):
         ]
         if len(matches) > 1:
             raise ValueError("found more than one assertion method with given kid")
-        elif len(matches) == 0:
+        elif not matches:
             raise ValueError("no assertion method found with given kid")
         return matches[0]
 
@@ -102,7 +98,7 @@ def create_assertion_method(
     kid: Optional[str] = None,
 ):
     if kid is None:
-        kid = "#" + get_public_key_fingerprint(public_key)
+        kid = f"#{get_public_key_fingerprint(public_key)}"
     if not kid.startswith("#"):
         raise ValueError("kid must start with '#'")
 

@@ -126,8 +126,7 @@ def request(url, data=None, headers=None):
 
 def get_queue_dir(url):
     queue_id = hashlib.sha256(url.encode("utf-8")).hexdigest()
-    queue_dir = os.path.join(tempfile.gettempdir(), f"scitt-fetch-queue-{queue_id}")
-    return queue_dir
+    return os.path.join(tempfile.gettempdir(), f"scitt-fetch-queue-{queue_id}")
 
 
 def queue_request(url: str, nonce: str, callback_url: str, callback_context: bytes):
@@ -176,7 +175,7 @@ def queue_request(url: str, nonce: str, callback_url: str, callback_context: byt
                 logging.info(f"Queued request {request_path}")
             break
     except Exception as e:
-        logging.error(f"Error while queuing request", exc_info=e)
+        logging.error("Error while queuing request", exc_info=e)
         os.remove(f.name)
         raise e
 
@@ -201,7 +200,7 @@ def process_requests(url):
             # Add nonce as query parameter for cache busting.
             # This reduces the time to observe DID document updates
             # for some servers like GitHub Pages.
-            url = url + f"?{request_metadata['nonce']}"
+            url = f"{url}?{request_metadata['nonce']}"
 
             result = fetch_attested(url, request_metadata["nonce"])
 
@@ -245,8 +244,9 @@ def process_requests(url):
 
 
 def run(url, nonce, callback_url: str, callback_context: bytes):
-    is_new_queue = queue_request(url, nonce, callback_url, callback_context)
-    if is_new_queue:
+    if is_new_queue := queue_request(
+        url, nonce, callback_url, callback_context
+    ):
         process_requests(url)
 
 

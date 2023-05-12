@@ -70,18 +70,16 @@ def create_signer_from_arguments(
 ) -> crypto.Signer:
     key = crypto.load_private_key(key_path)
 
-    if did_doc_path is not None:
-        if issuer or algorithm:
-            raise ValueError(
-                "The --issuer and --alg flags may not be used together with a DID document."
-            )
-
-        with open(did_doc_path) as f:
-            did_doc = json.load(f)
-        return did.get_signer(key, did_doc, kid)
-
-    else:
+    if did_doc_path is None:
         return crypto.Signer(key, issuer, kid, algorithm)
+    if issuer or algorithm:
+        raise ValueError(
+            "The --issuer and --alg flags may not be used together with a DID document."
+        )
+
+    with open(did_doc_path) as f:
+        did_doc = json.load(f)
+    return did.get_signer(key, did_doc, kid)
 
 
 def sign_claims(

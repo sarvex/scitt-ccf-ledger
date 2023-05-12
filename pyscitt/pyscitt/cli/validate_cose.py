@@ -14,11 +14,7 @@ def validate_cose_with_receipt(
 
     cose = cose_path.read_bytes()
 
-    if receipt_path is None:
-        receipt = None
-    else:
-        receipt = receipt_path.read_bytes()
-
+    receipt = None if receipt_path is None else receipt_path.read_bytes()
     verify_receipt(cose, service_trust_store, receipt)
     print(f"COSE document is valid: {cose_path}")
 

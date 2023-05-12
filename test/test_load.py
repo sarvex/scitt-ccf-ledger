@@ -52,4 +52,4 @@ class TestLoad:
         stats = json.loads(result.stdout)
         print(stats)
 
-        assert all([s["num_failures"] == 0 for s in stats])
+        assert all(s["num_failures"] == 0 for s in stats)
